@@ -9,20 +9,20 @@ def get_questions():
         {
             "category": "Science: Computers",
             "type": "multiple",
-            "difficulty": "easy",
-            "question": "HTML is what type of language?",
-            "correct_answer": "Markup Language",
+            "difficulty": "medium",
+            "question": "Which internet company began life as an online bookstore called 'Cadabra'?",
+            "correct_answer": "Amazon",
             "incorrect_answers": [
-                "Macro Language",
-                "Programming Language",
-                "Scripting Language"
+                "eBay",
+                "Overstock",
+                "Shopify"
             ]
         },
         {
             "category": "Science: Computers",
             "type": "boolean",
             "difficulty": "medium",
-            "question": "All program codes have to be compiled into an executable file in order to be run. This file can then be executed on any machine.",
+            "question": "The first computer bug was formed by faulty wires.",
             "correct_answer": "False",
             "incorrect_answers": [
                 "True"
@@ -31,17 +31,23 @@ def get_questions():
         {
             "category": "Science: Computers",
             "type": "multiple",
-            "difficulty": "medium",
-            "question": "On which day did the World Wide Web go online?",
-            "correct_answer": "December 20, 1990",
+            "difficulty": "hard",
+            "question": "What was the name of the security vulnerability found in Bash in 2014?",
+            "correct_answer": "Shellshock",
             "incorrect_answers": [
-                "December 17, 1996",
-                "November 12, 1990",
-                "November 24, 1995"
+                "Heartbleed",
+                "Bashbug",
+                "Stagefright"
             ]
         }
     ]
-    return jsonify(questions)
+
+    response = {
+        "response_code": 0,
+        "results": questions
+    }
+
+    return jsonify(response)
 
 
 if __name__ == '__main__':
