@@ -1,2 +1,10 @@
 Flask
 Gunicorn
+openai
+sklearn
+spacy
+json
+re
+BeautifulSoup
+requests
+googlesearch
