@@ -127,7 +127,7 @@ def text_to_chunks(text, chunk_size = 4000, overlap_percentage=0):
 
 
 def get_urls(query):
-    urls = search("what are" + query)
+    urls = search(query)
     return urls
 
 
@@ -180,15 +180,20 @@ def home():
     return "Sgnack"
 
 
-@app.route('/api/questions', methods=['GET'])
-def get_questions():
-    query = "spinaci"
+@app.route('/api/questions/<input>', methods=['GET'])
+def get_questions(input):
+    query = input
     context = web_to_text(query)
     chunks = text_to_chunks(context)
     context = chunks[0]
-    json_string = LMQuiz(query, context)
-    if not json_validator(json_string):
-        return "errore nel json"
+
+    json_string = ""
+    while not json_validator(json_string):
+        json_string = LMQuiz(query, context)
+        if not json_validator(json_string):
+            print("Error in JSON")
+            # You can add a delay or other actions here if needed
+
     data = json.loads(json_string)
 
     response = {
