@@ -46,6 +46,7 @@ tqdm
 typer
 typing-extensions
 urllib3
+wikipedia
 wasabi
 Werkzeug
 yarl

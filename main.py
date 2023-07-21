@@ -21,9 +21,9 @@ def quanto_pago(response):
     completion_price = completion_tokens * completion_tokens_price
     prompt_price = prompt_tokens * prompt_tokens_price
     price = completion_price + prompt_price
-    # print("completion_price: " + str(completion_price))
-    # print("prompt_price: " + str(prompt_price))
-    # print("costo chiamata: " + str(price))
+    #print("completion_price: " + str(completion_price))
+    #print("prompt_price: " + str(prompt_price))
+    #print("costo chiamata: " + str(price))
     total_tokens = response['usage']['total_tokens']
     # print(total_tokens)
     global costo_complessivo
@@ -40,7 +40,7 @@ def LMQuiz(topic, context, num, lang):
         messages=[
             {
                 "role": "system",
-                "content": f"""generate {num} questions about {topic} in language: {lang} using the information in the given text. Put the questions into a JSON like this example [{{"question":"HTML is what type of language?","correct_answer":"Markup Language","incorrect_answers":["Macro Language","Programming Language","Scripting Language"]}},{{"question":"All program codes have to be compiled into an executable file in order to be run. This file can then be executed on any machine.","correct_answer":"False","incorrect_answers":["True"]}}]"""
+                "content": f"""generate {num} questions about {topic} in language: {lang} using the information in the given text. All of your output must be JSON-formatted. Follow this example [{{"question":"HTML is what type of language?","correct_answer":"Markup Language","incorrect_answers":["Macro Language","Programming Language","Scripting Language"]}},{{"question":"All program codes have to be compiled into an executable file in order to be run. This file can then be executed on any machine.","correct_answer":"False","incorrect_answers":["True"]}}]"""
             },
             {
                 "role": "user",
@@ -57,7 +57,7 @@ def LMQuiz(topic, context, num, lang):
     print(f"Spesa totale:  {quanto_pago(response)}")
     che_ha_detto = response['choices'][0]['message']['content']
     print("Response: ", che_ha_detto)
-    return che_ha_detto
+    return che_ha_detto, quanto_pago(response)
 
 
 def clean_text(input_text):
@@ -127,7 +127,6 @@ def web_to_text(query):
     return text
 
 
-
 def wiki_to_text(query, lang="it"):
     try:
         wikipedia.set_lang(lang)
@@ -154,7 +153,7 @@ app = Flask(__name__)
 def home():
     return "Sgnack"
 
-
+# http://localhost:5000/api/questions?query=Apprendimento%20automatico&lang=it&num=5
 @app.route('/api/questions', methods=['GET'])
 def get_questions():
     # Accessing query parameters from the request.args dictionary
@@ -163,27 +162,33 @@ def get_questions():
     lang = request.args.get('lang', default='en', type=str)
     context = wiki_to_text(query, lang)
 
-    if (context == "not found"):
+    if context == "not found":
         return context
 
     chunks = text_to_chunks(context)
     context = chunks[0]
-
+    iteration_count = 0
     json_string = ""
     while not json_validator(json_string):
-        json_string = LMQuiz(query, context, num, lang)
+        json_string, prezzo = LMQuiz(query, context, num, lang)
         if not json_validator(json_string):
             print("Error in JSON")
             # You can add a delay or other actions here if needed
+
+        iteration_count += 1
 
     data = json.loads(json_string)
 
     response = {
         "response_code": 0,
+        "price": prezzo,
+        "total_iterations": iteration_count,
         "results": data
     }
+    # Create a dictionary with ensure_ascii=False to preserve non-ASCII characters in the JSON
+    response_json = json.dumps(response, ensure_ascii=False)
 
-    return jsonify(response)
+    return app.response_class(response=response_json, content_type='application/json')
 
 @app.route('/favicon.ico')
 def favicon():
