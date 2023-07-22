@@ -1,1 +1,7 @@
 runtime: python310
+
+env_variables:
+  CLOUD_SQL_USERNAME: flaskapi
+  CLOUD_SQL_PASSWORD: N-uP$~_jRQ=P?FVo
+  CLOUD_SQL_DATABASE_NAME: teachiz
+  CLOUD_SQL_CONNECTION_NAME: teachizapi:europe-west1:teachizdb

@@ -50,3 +50,5 @@ wikipedia
 wasabi
 Werkzeug
 yarl
+Flask-SQLAlchemy
+PyMySQL
