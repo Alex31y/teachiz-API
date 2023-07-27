@@ -5,8 +5,9 @@ class Question:
         self._question = None
         self._wrong_answ = None
         self._corct_answ = None
-        self._upvotes = None
-        self._downvotes = None
+        self._upvotes = 0
+        self._downvotes = 0
+        self._lang = None
 
     # Getters
     def get_qw_id(self):
@@ -30,6 +31,9 @@ class Question:
     def get_downvotes(self):
         return self._downvotes
 
+    def get_lang(self):
+        return self._lang
+
     # Setters
     def set_qw_id(self, qw_id):
         self._qw_id = qw_id
@@ -52,6 +56,9 @@ class Question:
     def set_downvotes(self, downvotes):
         self._downvotes = downvotes
 
+    def set_lang(self, lang):
+        self._lang = lang
+
     def printa(self):
         print("Non-null variables:")
         if self._qw_id is not None:
@@ -68,3 +75,5 @@ class Question:
             print(f"_upvotes: {self._upvotes}")
         if self._downvotes is not None:
             print(f"_downvotes: {self._downvotes}")
+        if self._downvotes is not None:
+            print(f"_lang: {self.lang}")

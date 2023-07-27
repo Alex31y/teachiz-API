@@ -58,6 +58,82 @@ def LMQuiz(topic, context, num, lang):
     return che_ha_detto, quanto_pago(response)
 
 
+def LMnotes(query, context, lang):
+    # print("Input - Topic:", topic)
+    # print("Input - Context:", context)
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo-16k",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""I am learning about {query}. Teach me using the provided information in the language: {lang}"""
+            },
+            {
+                "role": "user",
+                "content": f"{context}"
+            }
+        ],
+        temperature=1,
+        max_tokens=2048,
+        top_p=1,
+        frequency_penalty=0,
+        presence_penalty=0
+    )
+
+    print(f"Spesa totale:  {quanto_pago(response)}")
+    che_ha_detto = response['choices'][0]['message']['content']
+    print("Response: ", che_ha_detto)
+    return che_ha_detto, quanto_pago(response)
+
+
+def LMquery(query, context, lang):
+    response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {
+        "role": "system",
+        "content": f"I am learning about {query} all i know is the provided text. Give me list of query strings by which i can continue my research in the language: {lang}"
+        },
+        {
+        "role": "user",
+        "content": f"{context}"
+        }
+    ],
+    temperature=1,
+    max_tokens=255,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0
+    )
+
+    print(f"Spesa totale:  {quanto_pago(response)}")
+    che_ha_detto = response['choices'][0]['message']['content']
+    print("Response: ", che_ha_detto)
+    return che_ha_detto
+
+
+def LMexplain(question, context):
+    response = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=[
+        {
+        "role": "user",
+        "content": f"answer this question and explain the reasoning: {question} Given this context: {context}"
+        }
+    ],
+    temperature=1,
+    max_tokens=1024,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0
+    )
+
+    print(f"Spesa totale:  {quanto_pago(response)}")
+    che_ha_detto = response['choices'][0]['message']['content']
+    print("Response: ", che_ha_detto)
+    return che_ha_detto, quanto_pago(response)
+
+
 def clean_text(input_text):
     text = ""
 
@@ -87,8 +163,8 @@ def text_to_chunks(text, chunk_size=4000, overlap_percentage=0):
     return chunks
 
 
-def get_urls(query):
-    urls = search(query)
+def get_urls(query, lang):
+    urls = search(query, lang=lang)
     return urls
 
 
@@ -111,8 +187,8 @@ def scraper(url):
         return "Connection error " + url
 
 
-def web_to_text(query):
-    urls = list(get_urls(query))  # Convert the generator object to a list
+def web_to_text(query, lang):
+    urls = list(get_urls(query, lang))  # Convert the generator object to a list
     wall_of_text = ""
     counter = 0
     while len(wall_of_text) < 5000:  # Add this condition to check the length of "wall_of_text"
@@ -125,20 +201,24 @@ def web_to_text(query):
     return text
 
 
-def wiki_to_text(query, lang="it"):
+def wiki_to_text(query, lang="it", original_query=None, attempt=1):
     try:
         wikipedia.set_lang(lang)
         page = wikipedia.page(query)
         text = clean_text(page.content)
-        return text
+        return query, text  # Return the extracted text and the original query
     except wikipedia.exceptions.DisambiguationError as e:
-        # Extract the first option from the list of possible results
-        first_option = e.options[1]
-        print(f"Ambiguous term '{query}'. Using first option: {first_option}")
-        return wiki_to_text(first_option, lang)  # Recursively call with the first option
+        if attempt <= 3 and len(e.options) > 1:
+            first_option = e.options[0]
+            print(f"Ambiguous term '{query}'. Using option: {first_option}")
+            return first_option, wiki_to_text(first_option, lang, original_query=query, attempt=attempt + 1)
+        else:
+            print(f"Unable to determine the correct option for '{query}', cerco su google")
+            return query, web_to_text(original_query, lang)
     except wikipedia.exceptions.PageError:
         print("Not found in Wikipedia")
-        return web_to_text(query)
+        return query, web_to_text(original_query, lang)
+
 
 
 def json_validator(json_string):
