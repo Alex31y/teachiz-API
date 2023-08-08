@@ -152,6 +152,7 @@ yesterday = today - timedelta(days=1)
 yesterday = yesterday.strftime("%Y-%m-%d")
 
 
+# http://127.0.0.1:5000/api/getnews?giornale=ilpost.it&data=2023-08-02&depth=10
 # "repubblica.it", "2023-08-06"
 # ilpost.it
 @app.route('/api/getnews', methods=['GET'])
