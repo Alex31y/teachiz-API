@@ -92,7 +92,7 @@ def LMquery(query, context, lang):
     messages=[
         {
         "role": "system",
-        "content": f"I am learning about {query} all i know is the provided text. Give me list of query strings by which i can continue my research in the language: {lang}"
+        "content": f"I am learning about {query} all i know is the provided text. Give me a string list of 10 queries separed by - character by which i can continue my research in the language: {lang}"
         },
         {
         "role": "user",
@@ -106,9 +106,9 @@ def LMquery(query, context, lang):
     presence_penalty=0
     )
 
-    print(f"Spesa totale:  {quanto_pago(response)}")
+    #print(f"Spesa totale:  {quanto_pago(response)}")
     che_ha_detto = response['choices'][0]['message']['content']
-    print("Response: ", che_ha_detto)
+    #print("Response: ", che_ha_detto)
     return che_ha_detto
 
 
@@ -198,6 +198,7 @@ def web_to_text(query, lang):
         wall_of_text += scraper(url)
         counter += 1
     text = clean_text(wall_of_text)
+    text = LMnotes(query, text, lang)
     return text
 
 
@@ -206,6 +207,8 @@ def wiki_to_text(query, lang="it", original_query=None, attempt=1):
         wikipedia.set_lang(lang)
         page = wikipedia.page(query)
         text = clean_text(page.content)
+        text = text[:15000]
+        text = LMnotes(query, text, lang)
         return query, text  # Return the extracted text and the original query
     except wikipedia.exceptions.DisambiguationError as e:
         if attempt <= 3 and len(e.options) > 1:

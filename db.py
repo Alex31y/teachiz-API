@@ -32,8 +32,7 @@ def get_questions(lang):
             cursor.execute(sql, (lang.lower(),))
             qwt = cursor.fetchall()
             if qwt:
-                random_5_qwt = random.sample(qwt, min(5, len(qwt)))
-                got_questions = jsonify(random_5_qwt)
+                got_questions = jsonify(qwt)
             else:
                 got_questions = "Empty"
     except pymysql.Error as e:
@@ -55,15 +54,17 @@ def get_qwt_from_query(query, lang):
             qwt = cursor.fetchall()
             if qwt:
                 random_5_qwt = random.sample(qwt, min(5, len(qwt)))
-                got_qwt = jsonify(random_5_qwt)
+                got_qwt = random_5_qwt
             else:
-                got_qwt = "Empty"
+                got_qwt = []  # Return an empty list instead of "Empty"
     except pymysql.Error as e:
         print(f"Error executing SQL query: {e}")
-        got_qwt = "Error occurred while fetching data"
+        got_qwt = {"error": "Error occurred while fetching data"}
 
     conn.close()
     return got_qwt
+
+
 
 def set_questions(questions):
     conn = open_connection()
@@ -75,8 +76,8 @@ def set_questions(questions):
             for qw in questions:
                 wrong_answ_str = json.dumps(qw.get_wrong_answ())
                 corct_answ_str = qw.get_corct_answ()
-                sql = 'INSERT INTO questions (query, question, wrong_answ, corct_answ) VALUES (%s, %s, %s, %s)'
-                cursor.execute(sql, (qw.get_query(), qw.get_question(), wrong_answ_str, corct_answ_str))
+                sql = 'INSERT INTO questions (query, question, wrong_answ, corct_answ, lang) VALUES (%s, %s, %s, %s, %s)'
+                cursor.execute(sql, (qw.get_query(), qw.get_question(), wrong_answ_str, corct_answ_str, qw.get_lang()))
 
         conn.commit()
     except pymysql.Error as e:
@@ -90,21 +91,32 @@ def set_questions(questions):
 
 
 def set_note(note):
+    def convert_to_string(value):
+        if isinstance(value, list):
+            return ', '.join(str(item) for item in value)
+        return str(value)
+
     conn = open_connection()
     with conn.cursor() as cursor:
-        cursor.execute('INSERT INTO note (query, text, related_query) VALUES (%s, %s, %s)', (note.get_query(), note.get_text(), note.get_related_query()))
+        query = convert_to_string(note.get_query())
+        text = convert_to_string(note.get_text())
+        pop = convert_to_string(note.get_pop())
+        lang = convert_to_string(note.get_lang())
+
+        cursor.execute('INSERT INTO note (query, text, pop, lang) VALUES (%s, %s, %s, %s)', (query, text, pop, lang))
     conn.commit()
     conn.close()
+
 
 
 def get_note(query, lang):
     conn = open_connection()
     with conn.cursor() as cursor:
-        sql = "SELECT * FROM note WHERE LOWER(query) = %s AND LOWER(lang) = %s"
+        sql = "SELECT text FROM note WHERE LOWER(query) = %s AND LOWER(lang) = %s"
         cursor.execute(sql, (query.lower(), lang.lower()))
         qwt = cursor.fetchall()
         if len(qwt) > 0:
-            got_notes = jsonify(qwt)
+            got_notes = qwt
         else:
             got_notes = "Empty"
     conn.close()

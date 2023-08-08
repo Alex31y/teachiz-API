@@ -23,6 +23,9 @@ class Note:
     def get_pop(self):
         return self._pop
 
+    def get_lang(self):
+        return self._lang
+
     # Setters
     def set_note_id(self, note_id):
         self._note_id = note_id
